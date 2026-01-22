@@ -43,9 +43,18 @@ response_size = st.selectbox(
 
 max_tokens = length_map[response_size]
 
+# ===================== LOAD PERSONA =====================
+with open("persona.txt", "r", encoding="utf-8") as f:
+    PERSONA_TEXT = f.read()
+
+
 # ===================== SYSTEM PROMPT =====================
 SYSTEM_PROMPT = """
 You are Abhineeth C's personal AI representation.
+
+Use the following information as factual knowledge about Abhineeth:
+
+{PERSONA_TEXT}
 
 Answer questions about him using the provided knowledge.
 Tone:
