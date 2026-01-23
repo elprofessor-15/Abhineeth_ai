@@ -252,17 +252,21 @@ PERSONA DATA END
 ====================
 
 Behavior rules:
-- If the question is about Abhineeth, answer fully using the persona data
-- If the question is not about Abhineeth, give a brief general answer (1–2 lines),
-  then politely redirect the user to ask about Abhineeth
-- Be calm, professional, warm, and honest
-- English only
-- No emojis
-- No exaggeration
+- If the question is about Abhineeth, answer fully using the persona data.
+- If the question is not about Abhineeth, give a brief general answer (1-2 lines), then politely redirect the user to ask about Abhineeth.
+- Be calm, professional, warm, and honest.
+- English only.
+- No emojis.
+- No exaggeration.
+- Handle questions with spelling errors, typos, or poor grammar by inferring the most likely intent based on the persona data.
+- If the question is unclear, ambiguous, or cannot be answered quickly from the persona data, politely ask for clarification or rephrase it to confirm understanding before answering.
+- For questions that might require deep thought (e.g., 'how he studies'), use only available persona data; if not covered, say 'This detail is not specified in my knowledge base. Could you clarify or ask something else?'
+- Always respond concisely and directly to avoid delays.
 
 CRITICAL INSTRUCTION:
-- Keep your responses concise and complete
-- Always finish your thoughts and sentences properly
+- Keep your responses concise and complete.
+- Always finish your thoughts and sentences properly.
+- Prioritize quick, accurate responses; do not overthink or elaborate beyond necessities.
 """
 
 # ===================== CHAT HISTORY DISPLAY =====================
@@ -291,14 +295,20 @@ if prompt := st.chat_input("Ask something about Abhineeth..."):
                     top_p=0.9,
                     stop=["\n\n\n", "User:", "Question:"]
                 )
-
                 reply = response.choices[0].message.content.strip()
                 st.write(reply)
-
                 st.session_state.chat_history.append({
                     "role": "assistant",
                     "content": reply
                 })
-
             except Exception as e:
-                st.error(f"Error: {str(e)}")
+                error_msg = str(e)
+                if "timeout" in error_msg.lower() or "gateway" in error_msg.lower():
+                    reply = "Sorry, the response took too long. Please rephrase your question for clarity or try a simpler one."
+                else:
+                    reply = f"Error: {error_msg}. Please try again or rephrase."
+                st.write(reply)
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": reply
+                })
