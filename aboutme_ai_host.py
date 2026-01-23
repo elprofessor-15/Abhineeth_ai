@@ -34,9 +34,9 @@ with col1:
     )
 
 background_urls = {
-    "Tennis": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1920&q=80",
-    "Nature": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80",
-    "Abstract": "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1920&q=80"
+    "Wimbledon Centre Court": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1920&q=80",
+    "Nature/Forest": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80",
+    "Abstract Gradient": "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1920&q=80"
 }
 
 selected_url = background_urls.get(background_choice, background_urls["Wimbledon Centre Court"])
