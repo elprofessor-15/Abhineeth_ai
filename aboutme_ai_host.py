@@ -20,164 +20,190 @@ client = InferenceClient(
 
 MODEL_NAME = "meta-llama/Llama-3.1-8B-Instruct"
 
+# ===================== STREAMLIT CONFIG =====================
+st.set_page_config(page_title="Abhineeth AI", page_icon="🤖", layout="centered")
+
+# ===================== BACKGROUND SELECTOR (TOP LEFT) =====================
+col1, col2 = st.columns([1, 4])
+
+with col1:
+    background_choice = st.selectbox(
+        "🎨",
+        ["Wimbledon Centre Court", "Nature/Forest", "Abstract Gradient"],
+        index=0,
+        label_visibility="collapsed"
+    )
+
+background_urls = {
+    "Wimbledon Centre Court": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1920&q=80",
+    "Nature/Forest": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80",
+    "Abstract Gradient": "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1920&q=80"
+}
+
+selected_url = background_urls.get(background_choice, background_urls["Wimbledon Centre Court"])
+
 # ===================== BACKGROUND & STYLING =====================
-def set_background_and_style():
+def set_background_and_style(bg_url):
     """
-    Sets background image and custom chat styling
+    Sets background image and custom chat styling with enhanced text visibility
     """
-    st.markdown("""
+    st.markdown(f"""
     <style>
     /* Background Image */
-    .stApp {
-        background-image: url("https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1920");
+    .stApp {{
+        background-image: url("{bg_url}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
-    }
+    }}
     
-    /* Dark overlay for readability */
-    .stApp::before {
+    /* Darker overlay for better text readability */
+    .stApp::before {{
         content: "";
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.65);
         z-index: 0;
         pointer-events: none;
-    }
+    }}
     
     /* Make content appear above overlay */
-    .main > div {
+    .main > div {{
         position: relative;
         z-index: 1;
-    }
+    }}
     
-    /* Title styling */
-    h1 {
-        color: white !important;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    /* Title styling - Enhanced visibility */
+    h1 {{
+        color: #ffffff !important;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8) !important;
         font-weight: bold !important;
-    }
+        background: rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 10px;
+    }}
     
-    /* Caption styling */
-    .stCaption {
-        color: #e0e0e0 !important;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    }
+    /* Caption styling - Enhanced visibility */
+    .stCaption {{
+        color: #f0f0f0 !important;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.7) !important;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 15px !important;
+    }}
     
-    /* User message bubble (right side) */
-    .stChatMessage[data-testid="user-message"] {
+    /* User message bubble - Enhanced contrast */
+    .stChatMessage[data-testid="user-message"] {{
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         border-radius: 18px 18px 5px 18px !important;
-        padding: 15px 20px !important;
-        margin: 10px 0 !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+        padding: 16px 22px !important;
+        margin: 12px 0 !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
         backdrop-filter: blur(10px);
-    }
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }}
     
-    .stChatMessage[data-testid="user-message"] p {
-        color: white !important;
-        font-size: 16px !important;
-        line-height: 1.5 !important;
-    }
+    .stChatMessage[data-testid="user-message"] p {{
+        color: #ffffff !important;
+        font-size: 17px !important;
+        line-height: 1.6 !important;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5) !important;
+        font-weight: 500 !important;
+    }}
     
-    /* Assistant message bubble (left side) */
-    .stChatMessage[data-testid="assistant-message"] {
-        background: rgba(255, 255, 255, 0.95) !important;
+    /* Assistant message bubble - Maximum readability */
+    .stChatMessage[data-testid="assistant-message"] {{
+        background: rgba(255, 255, 255, 0.98) !important;
         border-radius: 18px 18px 18px 5px !important;
-        padding: 15px 20px !important;
-        margin: 10px 0 !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+        padding: 16px 22px !important;
+        margin: 12px 0 !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
         backdrop-filter: blur(10px);
-        border-left: 4px solid #4CAF50;
-    }
+        border-left: 5px solid #4CAF50;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+    }}
     
-    .stChatMessage[data-testid="assistant-message"] p {
+    .stChatMessage[data-testid="assistant-message"] p {{
+        color: #1a1a1a !important;
+        font-size: 17px !important;
+        line-height: 1.7 !important;
+        font-weight: 500 !important;
+    }}
+    
+    /* Chat input box - Enhanced visibility */
+    .stChatInputContainer {{
+        background: rgba(255, 255, 255, 0.98) !important;
+        border-radius: 25px !important;
+        padding: 8px !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(0, 0, 0, 0.1);
+    }}
+    
+    .stChatInputContainer input {{
         color: #1a1a1a !important;
         font-size: 16px !important;
-        line-height: 1.6 !important;
-    }
+        font-weight: 500 !important;
+    }}
     
-    /* Chat input box */
-    .stChatInputContainer {
+    /* Selectbox styling - Enhanced visibility */
+    .stSelectbox {{
         background: rgba(255, 255, 255, 0.95) !important;
-        border-radius: 25px !important;
-        padding: 5px !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
-        backdrop-filter: blur(10px);
-    }
-    
-    /* Selectbox styling */
-    .stSelectbox {
-        background: rgba(255, 255, 255, 0.9) !important;
         border-radius: 10px !important;
         padding: 5px;
-    }
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }}
     
-    .stSelectbox label {
-        color: white !important;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    .stSelectbox label {{
+        color: #ffffff !important;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.7) !important;
         font-weight: bold !important;
-    }
+        font-size: 15px !important;
+    }}
+    
+    .stSelectbox div[data-baseweb="select"] {{
+        background: rgba(255, 255, 255, 0.98) !important;
+        border: 2px solid rgba(0, 0, 0, 0.2) !important;
+    }}
+    
+    .stSelectbox div[data-baseweb="select"] > div {{
+        color: #1a1a1a !important;
+        font-weight: 600 !important;
+    }}
+    
+    /* Horizontal rule styling */
+    hr {{
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        margin: 20px 0 !important;
+    }}
     
     /* Spinner styling */
-    .stSpinner > div {
+    .stSpinner > div {{
         border-color: #4CAF50 transparent transparent transparent !important;
-    }
+    }}
+    
+    /* Column styling for background selector */
+    [data-testid="column"] {{
+        background: transparent !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
-# Apply styling
-set_background_and_style()
+# Apply styling with selected background
+set_background_and_style(selected_url)
 
-# ===================== STREAMLIT CONFIG =====================
-st.set_page_config(page_title="Abhineeth AI", page_icon="🤖", layout="centered")
+# ===================== MAIN CONTENT =====================
 st.title("Ask Anything About Abhineeth")
 
 st.caption(
     "This AI answers professional questions about Abhineeth — research, career, skills, mindset, and work. "
     "For personal matters, please reach out to Abhineeth directly."
 )
-
-# ===================== BACKGROUND IMAGE SELECTOR (OPTIONAL) =====================
-st.markdown("---")
-with st.expander("🎨 Change Background Image"):
-    background_choice = st.radio(
-        "Choose a background:",
-        ["Tennis Court (Default)", "Nature/Forest", "Abstract Gradient", "Stadium", "Custom URL"],
-        index=0
-    )
-    
-    background_urls = {
-        "Tennis Court (Default)": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1920",
-        "Nature/Forest": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920",
-        "Abstract Gradient": "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1920",
-        "Stadium": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1920"
-    }
-    
-    if background_choice == "Custom URL":
-        custom_url = st.text_input("Enter image URL:", placeholder="https://example.com/image.jpg")
-        if custom_url:
-            st.markdown(f"""
-            <style>
-            .stApp {{
-                background-image: url("{custom_url}") !important;
-            }}
-            </style>
-            """, unsafe_allow_html=True)
-    else:
-        selected_url = background_urls.get(background_choice)
-        if selected_url:
-            st.markdown(f"""
-            <style>
-            .stApp {{
-                background-image: url("{selected_url}") !important;
-            }}
-            </style>
-            """, unsafe_allow_html=True)
 
 st.markdown("---")
 
