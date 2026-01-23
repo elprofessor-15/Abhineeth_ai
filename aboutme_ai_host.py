@@ -14,8 +14,13 @@ if not HF_TOKEN:
 
 client = InferenceClient(token=HF_TOKEN)
 
-# ✅ Router-safe chat model (works on Streamlit Cloud)
-MODEL_NAME = "HuggingFaceH4/zephyr-7b-beta"
+# ✅ Updated to use a supported serverless inference model
+# These models are optimized for the Hugging Face Inference API
+MODEL_NAME = "microsoft/Phi-3-mini-4k-instruct"
+# Alternative options (uncomment to try):
+# MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2"
+# MODEL_NAME = "meta-llama/Meta-Llama-3-8B-Instruct"  # May require approval
+# MODEL_NAME = "HuggingFaceH4/starchat2-15b-v0.1"
 
 # ===================== STREAMLIT CONFIG =====================
 st.set_page_config(page_title="Abhineeth AI", page_icon="🤖", layout="centered")
@@ -46,8 +51,12 @@ response_size = st.selectbox(
 max_tokens = length_map[response_size]
 
 # ===================== LOAD PERSONA =====================
-with open("persona.txt", "r", encoding="utf-8") as f:
-    PERSONA_TEXT = f.read()
+try:
+    with open("persona.txt", "r", encoding="utf-8") as f:
+        PERSONA_TEXT = f.read()
+except FileNotFoundError:
+    st.error("persona.txt file not found. Please ensure it exists in the app directory.")
+    st.stop()
 
 # ===================== SYSTEM PROMPT (FIXED) =====================
 SYSTEM_PROMPT = f"""
@@ -102,6 +111,7 @@ if user_input:
     with st.chat_message("user"):
         st.write(user_input)
 
+    # Build messages for the API
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     # Keep last 6 messages as context
@@ -113,20 +123,26 @@ if user_input:
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            response = client.chat_completion(
-                model=MODEL_NAME,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=0.6
-            )
+            try:
+                response = client.chat_completion(
+                    model=MODEL_NAME,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=0.6
+                )
 
-            assistant_reply = response.choices[0].message.content.strip()
+                assistant_reply = response.choices[0].message.content.strip()
 
-            st.write(assistant_reply)
+                st.write(assistant_reply)
 
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": assistant_reply
-            })
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": assistant_reply
+                })
 
-            log_to_console(user_input, assistant_reply)
+                log_to_console(user_input, assistant_reply)
+            
+            except Exception as e:
+                st.error(f"Error generating response: {str(e)}")
+                st.info("Try refreshing the page or contact support if the issue persists.")
+                print(f"ERROR: {e}")
