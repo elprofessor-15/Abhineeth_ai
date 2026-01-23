@@ -8,11 +8,14 @@ load_dotenv()
 
 HF_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
-client = InferenceClient(
-    token=HF_TOKEN
-)
+if not HF_TOKEN:
+    st.error("Hugging Face API token not found. Please add it in Streamlit Secrets.")
+    st.stop()
 
-MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2"
+client = InferenceClient(token=HF_TOKEN)
+
+# ✅ Router-safe chat model (works on Streamlit Cloud)
+MODEL_NAME = "HuggingFaceH4/zephyr-7b-beta"
 
 # ===================== STREAMLIT CONFIG =====================
 st.set_page_config(page_title="Abhineeth AI", page_icon="🤖", layout="centered")
@@ -22,7 +25,6 @@ st.caption(
     "This AI answers professional questions about Abhineeth — research, career, skills, mindset, and work. "
     "For personal matters, please reach out to Abhineeth directly."
 )
-
 
 # ===================== SESSION STATE =====================
 if "chat_history" not in st.session_state:
@@ -47,39 +49,29 @@ max_tokens = length_map[response_size]
 with open("persona.txt", "r", encoding="utf-8") as f:
     PERSONA_TEXT = f.read()
 
+# ===================== SYSTEM PROMPT (FIXED) =====================
+SYSTEM_PROMPT = f"""
+You are Abhineeth C himself, answering questions about your own life, work, and mindset.
 
-# ===================== SYSTEM PROMPT =====================
-SYSTEM_PROMPT = """
-You are Abhineeth C's personal AI representation.
+Below is the ONLY factual source you may use. Treat it as ground truth.
+Do not invent, assume, or exaggerate beyond it.
 
-Use the following information as factual knowledge about Abhineeth:
-
+====================
+PERSONA DATA START
+====================
 {PERSONA_TEXT}
+====================
+PERSONA DATA END
+====================
 
-Answer questions about him using the provided knowledge.
-Tone:
-- Calm
-- Confident
-- Caring
-- Clear
-- Slightly thoughtful
-- Human and grounded
-
-Style:
+Behavior rules:
+- If the question is about Abhineeth, answer fully using the persona data
+- If the question is not about Abhineeth, give a brief general answer (1–2 lines),
+  then politely redirect the user to ask about Abhineeth
+- Be calm, professional, warm, and honest
 - English only
-- Crisp but warm
-- No exaggeration
 - No emojis
-- Focus directly on what is asked
-- If unsure, say so honestly
-
-Personality hints:
-- Curious
-- Analytical
-- Emotionally aware
-- Business-oriented
-- Uses AI as a leverage tool, not identity
-- Speaks openly when happy
+- No exaggeration
 """
 
 # ===================== CHAT DISPLAY =====================
@@ -90,7 +82,7 @@ for msg in st.session_state.chat_history:
 # ===================== USER INPUT =====================
 user_input = st.chat_input("Ask something about Abhineeth...")
 
-# ===================== CHAT LOGGING FUNCTION =====================
+# ===================== LOGGING =====================
 def log_to_console(user_query, assistant_reply):
     print("\n" + "=" * 80)
     print("USER QUESTION:")
@@ -101,7 +93,7 @@ def log_to_console(user_query, assistant_reply):
 
 # ===================== MODEL CALL =====================
 if user_input:
-    # Show user message
+    # Save user message
     st.session_state.chat_history.append({
         "role": "user",
         "content": user_input
@@ -110,19 +102,15 @@ if user_input:
     with st.chat_message("user"):
         st.write(user_input)
 
-    # Build messages for model
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-    ]
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
-    # Add previous chat context (last 6 turns max)
+    # Keep last 6 messages as context
     for msg in st.session_state.chat_history[-6:]:
         messages.append({
             "role": msg["role"],
             "content": msg["content"]
         })
 
-    # Call model
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             response = client.chat_completion(
@@ -132,16 +120,13 @@ if user_input:
                 temperature=0.6
             )
 
-            assistant_reply = response.choices[0].message.content
+            assistant_reply = response.choices[0].message.content.strip()
 
-            # Display
             st.write(assistant_reply)
 
-            # Save to session
             st.session_state.chat_history.append({
                 "role": "assistant",
                 "content": assistant_reply
             })
 
-            # Log to VS Code terminal
             log_to_console(user_input, assistant_reply)
