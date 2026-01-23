@@ -28,18 +28,18 @@ col1, col2 = st.columns([1, 4])
 with col1:
     background_choice = st.selectbox(
         "🎨",
-        ["Wimbledon Centre Court", "Nature/Forest", "Abstract Gradient"],
+        ["Tennis", "Nature", "Abstract"],
         index=0,
         label_visibility="collapsed"
     )
 
 background_urls = {
-    "Wimbledon Centre Court": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1920&q=80",
-    "Nature/Forest": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80",
-    "Abstract Gradient": "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1920&q=80"
+    "Tennis": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1920&q=80",
+    "Nature": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80",
+    "Abstract": "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1920&q=80"
 }
 
-selected_url = background_urls.get(background_choice, background_urls["Wimbledon Centre Court"])
+selected_url = background_urls.get(background_choice, background_urls["Tennis"])
 
 # ===================== BACKGROUND & STYLING =====================
 def set_background_and_style(bg_url):
@@ -293,8 +293,6 @@ if prompt := st.chat_input("Ask something about Abhineeth..."):
                 )
 
                 reply = response.choices[0].message.content.strip()
-
-                # Optional: your previous ensure_complete_response logic here if needed
                 st.write(reply)
 
                 st.session_state.chat_history.append({
