@@ -12,15 +12,19 @@ if not HF_TOKEN:
     st.error("Hugging Face API token not found. Please add it in Streamlit Secrets.")
     st.stop()
 
-client = InferenceClient(token=HF_TOKEN)
+# ✅ Using Inference Providers - the NEW way to access models on HF
+# Specify provider explicitly (sambanova, together, replicate, etc.)
+client = InferenceClient(
+    provider="sambanova",  # Fast, free-tier friendly provider
+    token=HF_TOKEN
+)
 
-# ✅ Updated to use a supported serverless inference model
-# These models are optimized for the Hugging Face Inference API
-MODEL_NAME = "microsoft/Phi-3-mini-4k-instruct"
-# Alternative options (uncomment to try):
-# MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2"
-# MODEL_NAME = "meta-llama/Meta-Llama-3-8B-Instruct"  # May require approval
-# MODEL_NAME = "HuggingFaceH4/starchat2-15b-v0.1"
+# ✅ Model available through SambaNova provider
+# Popular alternatives (all work with SambaNova):
+# - "meta-llama/Llama-3.3-70B-Instruct" (larger, better quality)
+# - "meta-llama/Llama-3.1-8B-Instruct" (faster, efficient)
+# - "Qwen/Qwen2.5-72B-Instruct" (excellent multilingual)
+MODEL_NAME = "meta-llama/Llama-3.1-8B-Instruct"
 
 # ===================== STREAMLIT CONFIG =====================
 st.set_page_config(page_title="Abhineeth AI", page_icon="🤖", layout="centered")
@@ -111,7 +115,7 @@ if user_input:
     with st.chat_message("user"):
         st.write(user_input)
 
-    # Build messages for the API
+    # Build messages for the API using chat.completions format
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     # Keep last 6 messages as context
@@ -124,7 +128,8 @@ if user_input:
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
-                response = client.chat_completion(
+                # Use the new chat.completions interface
+                response = client.chat.completions.create(
                     model=MODEL_NAME,
                     messages=messages,
                     max_tokens=max_tokens,
@@ -143,6 +148,25 @@ if user_input:
                 log_to_console(user_input, assistant_reply)
             
             except Exception as e:
-                st.error(f"Error generating response: {str(e)}")
-                st.info("Try refreshing the page or contact support if the issue persists.")
+                error_msg = str(e)
+                st.error(f"⚠️ Error: {error_msg}")
+                
+                # Helpful debugging info
+                if "model_not_supported" in error_msg:
+                    st.info("""
+                    **Model not available.** Try one of these alternatives:
+                    - meta-llama/Llama-3.1-8B-Instruct
+                    - meta-llama/Llama-3.3-70B-Instruct
+                    - Qwen/Qwen2.5-72B-Instruct
+                    
+                    Update MODEL_NAME in the code to one of these models.
+                    """)
+                elif "provider" in error_msg.lower():
+                    st.info("""
+                    **Provider issue.** Try changing the provider to:
+                    - "together" (Together AI)
+                    - "replicate" (Replicate)
+                    - "hf-inference" (Hugging Face native)
+                    """)
+                
                 print(f"ERROR: {e}")
