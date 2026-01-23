@@ -2,7 +2,6 @@ import streamlit as st
 from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
 import os
-import base64
 
 # ===================== ENV =====================
 load_dotenv()
@@ -45,7 +44,7 @@ selected_url = background_urls.get(background_choice, background_urls["Wimbledon
 # ===================== BACKGROUND & STYLING =====================
 def set_background_and_style(bg_url):
     """
-    Sets background image and custom chat styling with enhanced text visibility
+    Sets background image and custom styling with high-contrast selectboxes
     """
     st.markdown(f"""
     <style>
@@ -58,7 +57,7 @@ def set_background_and_style(bg_url):
         background-attachment: fixed;
     }}
 
-    /* Darker overlay for better text readability */
+    /* Dark overlay */
     .stApp::before {{
         content: "";
         position: fixed;
@@ -71,44 +70,106 @@ def set_background_and_style(bg_url):
         pointer-events: none;
     }}
 
-    /* Make content appear above overlay */
     .main > div {{
         position: relative;
         z-index: 1;
     }}
 
-    /* Title styling */
+    /* Title */
     h1 {{
         color: #ffffff !important;
         text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.95) !important;
         font-weight: bold !important;
-        background: rgba(0, 0, 0, 0.3);
+        background: rgba(0, 0, 0, 0.35);
         padding: 15px;
         border-radius: 10px;
     }}
 
-    /* Caption styling */
+    /* Caption */
     .stCaption {{
         color: #f0f0f0 !important;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.95) !important;
-        background: rgba(0, 0, 0, 0.4);
+        text-shadow: 2px 2px 5px rgba(0,0,0,0.9) !important;
+        background: rgba(0,0,0,0.45);
         padding: 10px;
         border-radius: 8px;
         font-size: 15px !important;
     }}
 
-    /* User & Assistant message bubbles (unchanged) */
+    /* ──────────────────────────────────────────────
+       SELECTBOX - HIGH CONTRAST BLACK BACKGROUND
+    ────────────────────────────────────────────── */
+    /* Label */
+    .stSelectbox label {{
+        color: #ffffff !important;
+        text-shadow: 2px 2px 6px rgba(0,0,0,1) !important;
+        font-weight: bold !important;
+        font-size: 15px !important;
+    }}
+
+    /* Main container */
+    div[data-baseweb="select"] {{
+        background-color: #000000 !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.55) !important;
+    }}
+
+    /* Selected value area → solid black + white text */
+    div[data-baseweb="select"] > div {{
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        font-size: 15px !important;
+        text-shadow: 1px 1px 5px rgba(0,0,0,1) !important;
+        background: #000000 !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+    }}
+
+    /* Arrow icon */
+    div[data-baseweb="select"] svg {{
+        fill: #ffffff !important;
+    }}
+
+    /* Dropdown menu when opened */
+    [data-baseweb="popover"] {{
+        background-color: #0f0f0f !important;
+        border: 1px solid #333 !important;
+        border-radius: 8px !important;
+    }}
+
+    [role="listbox"] {{
+        background-color: #0f0f0f !important;
+    }}
+
+    [role="option"] {{
+        color: #e8e8e8 !important;
+        background-color: #0f0f0f !important;
+        padding: 8px 12px !important;
+    }}
+
+    [role="option"]:hover {{
+        background-color: #1a5bb8 !important;
+        color: #ffffff !important;
+    }}
+
+    /* Chat bubbles */
     .stChatMessage[data-testid="user-message"] {{
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         border-radius: 18px 18px 5px 18px !important;
         padding: 16px 22px !important;
+        margin: 12px 0 !important;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
         border: 2px solid rgba(255, 255, 255, 0.2);
     }}
+
     .stChatMessage[data-testid="assistant-message"] {{
         background: rgba(255, 255, 255, 0.98) !important;
         border-radius: 18px 18px 18px 5px !important;
         padding: 16px 22px !important;
+        margin: 12px 0 !important;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
         border-left: 5px solid #4CAF50;
         border: 2px solid rgba(0, 0, 0, 0.1);
@@ -116,78 +177,22 @@ def set_background_and_style(bg_url):
 
     /* Chat input */
     .stChatInputContainer {{
-        background: rgba(255, 255, 255, 0.98) !important;
+        background: rgba(255, 255, 255, 0.97) !important;
         border-radius: 25px !important;
         padding: 8px !important;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
-        border: 2px solid rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0,0,0,0.15);
     }}
 
-    /* ──────────────────────────────────────────────
-       IMPROVED SELECTBOX VISIBILITY (both dropdowns)
-    ────────────────────────────────────────────── */
-    /* Label text → white + shadow */
-    .stSelectbox label {{
-        color: #ffffff !important;
-        text-shadow: 2px 2px 5px rgba(0,0,0,0.9) !important;
-        font-weight: bold !important;
-        font-size: 15px !important;
-    }}
-
-    /* Main select box container - keep white background */
-    div[data-baseweb="select"] {{
-        background-color: #ffffff !important;
-        border: 2px solid rgba(0, 0, 0, 0.25) !important;
-        border-radius: 8px !important;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.25) !important;
-    }}
-
-    /* Selected value text → FORCE WHITE on dark overlay cases */
-    div[data-baseweb="select"] > div {{
-        color: #ffffff !important;
-        font-weight: 600 !important;
-        font-size: 15px !important;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.8) !important;
-        background: rgba(30,30,50,0.4) !important;   /* subtle dark tint helps contrast */
-        padding: 4px 8px !important;
-        border-radius: 6px !important;
-    }}
-
-    /* Dropdown arrow */
-    div[data-baseweb="select"] svg {{
-        fill: #ffffff !important;
-    }}
-
-    /* Opened dropdown menu */
-    [data-baseweb="popover"] {{
-        background-color: #ffffff !important;
-        border: 1px solid #ccc !important;
-    }}
-
-    [role="listbox"] {{
-        background-color: #ffffff !important;
-    }}
-
-    /* Options text */
-    [role="option"] {{
-        color: #1a1a1a !important;
-        background-color: #ffffff !important;
-    }}
-
-    [role="option"]:hover {{
-        background-color: #e6f0ff !important;
-        color: #0044cc !important;
-    }}
-
-    /* Spinner & HR (unchanged) */
-    .stSpinner > div {{
-        border-color: #4CAF50 transparent transparent transparent !important;
-    }}
+    /* Others */
     hr {{
-        border-color: rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
         margin: 20px 0 !important;
     }}
 
+    .stSpinner > div {{
+        border-color: #4CAF50 transparent transparent transparent !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -208,7 +213,7 @@ st.markdown("---")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# ===================== RESPONSE LENGTH CONTROL =====================
+# ===================== RESPONSE LENGTH =====================
 length_map = {
     "Small": 150,
     "Medium": 300,
@@ -231,7 +236,7 @@ except FileNotFoundError:
     st.error("persona.txt file not found. Please ensure it exists in the app directory.")
     st.stop()
 
-# ===================== ENHANCED SYSTEM PROMPT =====================
+# ===================== SYSTEM PROMPT =====================
 SYSTEM_PROMPT = f"""
 You are Abhineeth C himself, answering questions about your own life, work, and mindset.
 
@@ -260,27 +265,21 @@ CRITICAL INSTRUCTION:
 - Always finish your thoughts and sentences properly
 """
 
-# ===================== CHAT DISPLAY =====================
+# ===================== CHAT HISTORY DISPLAY =====================
 for msg in st.session_state.chat_history:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
 # ===================== USER INPUT =====================
-user_input = st.chat_input("Ask something about Abhineeth...")
-
-# (rest of your code — logging, response helper, model call — remains unchanged)
-
-if user_input:
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
-    
+if prompt := st.chat_input("Ask something about Abhineeth..."):
+    st.session_state.chat_history.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
-        st.write(user_input)
-    
+        st.write(prompt)
+
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    
     for msg in st.session_state.chat_history[-6:]:
         messages.append({"role": msg["role"], "content": msg["content"]})
-    
+
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
@@ -292,24 +291,16 @@ if user_input:
                     top_p=0.9,
                     stop=["\n\n\n", "User:", "Question:"]
                 )
-                
-                assistant_reply = response.choices[0].message.content.strip()
-                finish_reason = response.choices[0].finish_reason
-                
-                if finish_reason == "length":
-                    # your ensure_complete_response logic here...
-                    assistant_reply = ensure_complete_response(assistant_reply)
-                    if not assistant_reply.endswith(('...', '.', '!', '?')):
-                        assistant_reply += '.'
-                
-                st.write(assistant_reply)
-                
+
+                reply = response.choices[0].message.content.strip()
+
+                # Optional: your previous ensure_complete_response logic here if needed
+                st.write(reply)
+
                 st.session_state.chat_history.append({
                     "role": "assistant",
-                    "content": assistant_reply
+                    "content": reply
                 })
-                
-                # log_to_console(user_input, assistant_reply)   # uncomment if needed
-                
+
             except Exception as e:
-                st.error(f"⚠️ Error: {str(e)}")
+                st.error(f"Error: {str(e)}")
