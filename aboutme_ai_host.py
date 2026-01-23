@@ -151,14 +151,12 @@ def set_background_and_style(bg_url):
         font-weight: 500 !important;
     }}
     
-    /* Selectbox styling - Enhanced visibility */
+    /* CRITICAL FIX: Selectbox styling - WHITE BACKGROUND with DARK TEXT */
     .stSelectbox {{
-        background: rgba(255, 255, 255, 0.95) !important;
-        border-radius: 10px !important;
-        padding: 5px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        background: transparent !important;
     }}
     
+    /* Label styling - white text with shadow */
     .stSelectbox label {{
         color: #ffffff !important;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.7) !important;
@@ -166,14 +164,44 @@ def set_background_and_style(bg_url):
         font-size: 15px !important;
     }}
     
+    /* Dropdown box itself - WHITE BACKGROUND */
     .stSelectbox div[data-baseweb="select"] {{
-        background: rgba(255, 255, 255, 0.98) !important;
-        border: 2px solid rgba(0, 0, 0, 0.2) !important;
+        background-color: #ffffff !important;
+        border: 2px solid rgba(0, 0, 0, 0.3) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
     }}
     
+    /* Selected text in dropdown - DARK TEXT */
     .stSelectbox div[data-baseweb="select"] > div {{
         color: #1a1a1a !important;
         font-weight: 600 !important;
+        font-size: 15px !important;
+    }}
+    
+    /* Dropdown arrow icon */
+    .stSelectbox svg {{
+        fill: #1a1a1a !important;
+    }}
+    
+    /* Dropdown menu when opened - WHITE BACKGROUND */
+    [data-baseweb="popover"] {{
+        background-color: #ffffff !important;
+    }}
+    
+    [role="listbox"] {{
+        background-color: #ffffff !important;
+    }}
+    
+    /* Dropdown options - DARK TEXT */
+    [role="option"] {{
+        color: #1a1a1a !important;
+        background-color: #ffffff !important;
+    }}
+    
+    [role="option"]:hover {{
+        background-color: #f0f0f0 !important;
+        color: #000000 !important;
     }}
     
     /* Horizontal rule styling */
@@ -190,6 +218,11 @@ def set_background_and_style(bg_url):
     /* Column styling for background selector */
     [data-testid="column"] {{
         background: transparent !important;
+    }}
+    
+    /* Fix for the emoji selector icon */
+    .stSelectbox:first-of-type div[data-baseweb="select"] {{
+        min-height: 45px !important;
     }}
     </style>
     """, unsafe_allow_html=True)
