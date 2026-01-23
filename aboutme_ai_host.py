@@ -41,9 +41,9 @@ if "chat_history" not in st.session_state:
 
 # ===================== RESPONSE LENGTH CONTROL =====================
 length_map = {
-    "Small": 80,
-    "Medium": 180,
-    "Large": 350
+    "Small": 130,
+    "Medium": 250,
+    "Large": 450
 }
 
 response_size = st.selectbox(
