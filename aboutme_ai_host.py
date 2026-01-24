@@ -163,7 +163,7 @@ Behavior rules:
 - Always respond concisely and directly to avoid delays.
 
 CRITICAL INSTRUCTION:
-- Keep your responses concise and complete.
+- Keep your responses concise and complete. Prioritize the first paragraph as the concise to the point answer. For answer type medium or large , accordingly elaborate a bit more or include more details in the next paragraph as needed.
 - Always finish your thoughts and sentences properly.
 - Prioritize quick, accurate responses; do not overthink or elaborate beyond necessities.
 """
