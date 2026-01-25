@@ -12,10 +12,7 @@ if not HF_TOKEN:
     st.error("Hugging Face API token not found. Please add it in Streamlit Secrets.")
     st.stop()
 
-client = InferenceClient(
-    provider="sambanova",
-    token=HF_TOKEN
-)
+client = InferenceClient(token=HF_TOKEN)  # No provider = defaults to HF inference servers
 
 MODEL_NAME = "meta-llama/Llama-3.1-8B-Instruct"
 
