@@ -24,7 +24,7 @@ col1, col2 = st.columns([1, 4])
 with col1:
     background_choice = st.selectbox(
         "🎨",
-        ["Tennis", "Nature", "Abstract","City"],
+        ["Tennis", "Nature", "Abstract"],
         index=0,
         label_visibility="collapsed"
     )
@@ -32,8 +32,7 @@ with col1:
 background_urls = {
     "Tennis": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1920&q=80",
     "Nature": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80",
-    "Abstract": "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1920&q=80",
-    "City":"https://unsplash.com/photos/vast-cityscape-illuminated-at-night-with-a-dark-sky-nFFX9WN4Vks"
+    "Abstract": "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1920&q=80"
 }
 
 selected_url = background_urls.get(background_choice, background_urls["Tennis"])
